@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector> 
 #include <string>
+#include "Bus_Line.h"
 
 using namespace std;
 
@@ -19,12 +20,13 @@ public:
 
 	friend class Network_Display;
 	friend class Graph;
+	friend class Bus_Line;
 
 private:
 	string name; 
 	int number; 
 	int compressed_number;
-	vector<Bus_Stop*> reachable; 
+	vector<pair<Bus_Stop*, string> > reachable; 
 };
 
 #endif 

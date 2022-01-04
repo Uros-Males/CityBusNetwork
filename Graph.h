@@ -18,6 +18,7 @@ public:
 	void bestTimePath(int code1, int code2, string s, Network_Display* N);
 	void mostComfortablePath(int code1, int code2, Network_Display* N);
 
+	void printModifiedPath(pair<int, string>* par, int source, int target, Network_Display* N);
 	void printPath(pair<int, Bus_Line*>* par, int source, int target, Network_Display* N);
 
 private:

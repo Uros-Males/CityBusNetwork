@@ -21,6 +21,7 @@ public:
 	void displayMostComfortable(int code1, int code2);
 
 	string getNameFromNumber(int code); 
+	Bus_Line* getLineFromString(string s);
 	int findLine(string code); 
 	int getCompressedFromNumber(int code);
 

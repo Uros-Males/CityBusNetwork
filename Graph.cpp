@@ -5,6 +5,8 @@
 #include <set>
 #define INF 10000000
 
+const int NMAX = 1000000;
+
 using namespace std;
 
 Graph::Graph(int V_) {
@@ -150,43 +152,102 @@ void Graph::mostComfortablePath(int code1, int code2, Network_Display* N) {
 	int* visit = new int[V];
 	for (int i = 0; i < this->V; i++) visit[i] = 0;
 
-	pair<int, Bus_Line*>* par = new pair<int, Bus_Line*>[V];
+	pair<int, string>* par = new pair<int, string>[V];
 	//par = (pair<int, Bus_Line*>*)malloc(this->V * sizeof(pair<int, Bus_Line*>)); 
-	for (int i = 0; i < this->V; i++) par[i] = make_pair(-1, new Bus_Line);
+	for (int i = 0; i < this->V; i++) par[i] = make_pair(-1, "");
 
 	int* dist = new int[V];
-	for (int i = 0; i < this->V; i++) dist[i] = 10000000;
-	
+	for (int i = 0; i < this->V; i++) dist[i] = NMAX;
+
 	dist[source] = 0;
-	//visit[source] = 1;
+	visit[source] = 1;
 
-	for (int i = 0; i < N->all_stops[source]->reachable.size(); i++) cout << source << ":::" << N->all_stops[source]->reachable[i]->number << endl;
+	//for (int i = 0; i < N->all_stops[source]->reachable.size(); i++) cout << source << ":::" << N->all_stops[source]->reachable[i].first->compressed_number << endl;
 
-	set<pair<int, int> >ss;
-	ss.insert({ dist[source], source });
-	while (!ss.empty()) {
-		int d = ss.begin()->first;
-		int now = ss.begin()->second;
-		ss.erase(ss.begin()); 
+	set<pair<int,int> > S;
+	S.insert({ dist[source], source }); 
+	while (!S.empty()) {
+		int now = S.begin()->second;
+		int d = S.begin()->first;
+		S.erase(S.begin());
+		for (pair<Bus_Stop*, string> it : N->all_stops[now]->reachable) {
+			int tmp = N->getCompressedFromNumber(it.first->number); 
+			//cout << it.first->compressed_number << endl;
+			if (dist[tmp]>dist[now]+1) {
+				//cout << "A"<< it.second << endl;
+				S.erase({ dist[tmp], tmp }); 
+				dist[tmp] = dist[now] + 1; 
+				par[tmp] = make_pair(now, it.second); 
+				S.insert({ dist[tmp], tmp });
+			}
+		}
+	}
+	//for (int i = 0; i < V; i++) cout << dist[i] << " ";
 
-		if (visit[now]) continue;
-		visit[now] = 1;
+	int x = target;
+	while (par[x].first != -1) {
+		Bus_Line* B = N->getLineFromString(par[x].second); 
 
-		for (pair<int, Bus_Line*> it : g[now]) {
-			int add = 1; 
-			for (int i = 0; i < N->all_stops[now]->reachable.size(); i++) if (N->all_stops[now]->reachable[i]->number == N->all_stops[it.first]->number) add = 0;
-			if (dist[it.first] > dist[now] + add) {
-				ss.erase({ dist[it.first], it.first }); 
-				dist[it.first] = dist[now] + add; 
-				ss.insert({ dist[it.first], it.first }); 
-				par[it.first] = make_pair(now, it.second);
+		int idx1, idx2; 
+		for (int i = 0; i < B->stops_better.size(); i++) if (B->stops_better[i]->compressed_number == x) idx1 = i;
+		for (int i = 0; i < B->stops_better.size(); i++) if (B->stops_better[i]->compressed_number == par[x].first) idx2 = i;
+
+		if (idx1 < idx2) {
+			for (int i = idx1; i + 1 <= idx2; i++) {
+				par[B->stops_better[i]->compressed_number] = make_pair(B->stops_better[i + 1]->compressed_number, par[x].second); 
+			}
+		}
+		else {
+			for (int i = idx1; i - 1 >= idx2; i--) {
+				par[B->stops_better[i]->compressed_number] = make_pair(B->stops_better[i - 1]->compressed_number, par[x].second);
 			}
 		}
 
+		x = par[x].first;  
 	}
+	//cout << dist[target]; 
+	printModifiedPath(par, source, target, N);
+	return;
+}
 
-	for (int i = 0; i < V; i++) cout << dist[i] << " ";
-	printPath(par, source, target, N);
+void Graph::printModifiedPath(pair<int, string>* par, int source, int target, Network_Display* N) {
+	int x = target;
+	string last = "";
+	stack<pair<int, string> > S;
+	while (x != -1) {
+		//cout << N->all_stops[x]->number << endl;
+		//cout << "linija: " << par[x].second << endl;
+		string in = par[x].second;
+		if (par[x].second == "") in = last;
+		else last = par[x].second;
+		S.push(make_pair(N->all_stops[x]->number, in));
+		//cout << "A" << endl;
+		x = par[x].first;
+	}
+	int carry = 0;
+	//cout << "143twergwr" << endl;
+	cout << "->" << last << endl;
+	while (!S.empty()) {
+		string go = last;
+		while (!S.empty()) {
+			pair<int, string> pp = S.top();
+			S.pop();
+			go = pp.second;
+			if (go != last) {
+				carry = pp.first;
+				break;
+			}
+			cout << pp.first << " ";
+		}
+		cout << endl;
+		if (go != last) cout << last << "->" << go << endl;
+		if (carry != 0) {
+			cout << carry << " ";
+			carry = 0;
+		}
+		last = go;
+	}
+	cout << "END" << endl;
 	return;
 }
 

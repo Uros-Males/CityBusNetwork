@@ -1,6 +1,7 @@
 #include "Network_Display.h"
 #include "Graph.h"
 #include <algorithm>
+#include<vector>
 
 using namespace std;
 
@@ -47,6 +48,10 @@ void Network_Display::displayBusStop(int code) {
 
 string Network_Display::getNameFromNumber(int code) {
 	for (int i = 0; i < this->all_stops.size(); i++) if (this->all_stops[i]->number == code) return this->all_stops[i]->name;
+}
+
+Bus_Line* Network_Display::getLineFromString(string s) {
+	for (int i = 0; i < this->lines.size(); i++) if (this->lines[i]->line_label == s) return this->lines[i]; 
 }
 
 int Network_Display::getCompressedFromNumber(int code) {
@@ -140,16 +145,21 @@ void Network_Display::getReachables() {
 
 			for (int k = 0; k < this->lines[j]->stops_better.size(); k++) {
 				if (this->all_stops[i] != this->lines[j]->stops_better[k]) {
-					this->all_stops[i]->reachable.push_back(this->lines[j]->stops_better[k]); 
+					this->all_stops[i]->reachable.push_back(make_pair(this->lines[j]->stops_better[k], this->lines[j]->line_label));
+					//cout << this->lines[j]->line_label << endl;
 				}
 			}
 		}
 		sort(this->all_stops[i]->reachable.begin(), this->all_stops[i]->reachable.end()); 
 		this->all_stops[i]->reachable.erase(unique(this->all_stops[i]->reachable.begin(), this->all_stops[i]->reachable.end()), this->all_stops[i]->reachable.end());
+		/*for (int j = 0; j < this->all_stops[i]->reachable.size(); j++) {
+			cout << this->all_stops[i]->number << ":::::::" << this->all_stops[i]->reachable[j].first->number << endl;
+		}*/
 	}
 }
 
 void Network_Display::displayMostComfortable(int code1, int code2) {
+	this->compressBusStops(); 
 	this->getReachables(); 
 	Graph* G = new Graph(this->all_stops.size());
 	G->setupGraph(this);
