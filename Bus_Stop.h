@@ -17,7 +17,6 @@ public:
 
 	void readFromString(string s); 
 
-	friend class Bus_Line;
 	friend class Network_Display;
 	friend class Graph;
 
@@ -25,6 +24,7 @@ private:
 	string name; 
 	int number; 
 	int compressed_number;
+	vector<Bus_Stop*> reachable; 
 };
 
 #endif 

@@ -2,6 +2,22 @@
 
 using namespace std;
 
+Bus_Line::Bus_Line() {
+	this->line_label = ""; 
+	this->departures = {};
+	this->stops = {};
+	this->stops_better = {};
+	this->stops_better_reversed = {}; 
+}
+
+Bus_Line::Bus_Line(Bus_Line* x) {
+	this->line_label = x->line_label;
+	this->departures = x->departures;
+	this->stops = x->stops;
+	this->stops_better = x->stops_better; 
+	this->stops_better_reversed = x->stops_better_reversed;
+}
+
 void Bus_Line::readFromString(string s) {
 	//EKO1[05:30 - 23 : 30#30] 654 585 583 190
 	int i = 0; 

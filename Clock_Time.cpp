@@ -25,6 +25,10 @@ bool operator<=(const Clock_Time& C1, const Clock_Time& C2) {
 	return false;
 }
 
+int operator-(const Clock_Time& C1, const Clock_Time& C2) {
+	return 60 * (C1.hour - C2.hour) + C1.minute - C2.minute;
+}
+
 void Clock_Time::read(string s) {
 	// 05:30
 	this->hour = 10 * (s[0] - '0') + s[1] - '0'; 

@@ -5,11 +5,13 @@ using namespace std;
 Bus_Stop::Bus_Stop() {
 	this->name = "";
 	this->number = -1;
+	this->reachable = {};
 }
 
 Bus_Stop::Bus_Stop(string name_, int number_) {
 	this->name = name_;
 	this->number = number_; 
+	this->reachable = {}; 
 }
 
 string Bus_Stop::getName() {

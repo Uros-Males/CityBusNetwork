@@ -12,6 +12,7 @@ public:
 	Clock_Time(int minute_, int hour_); 
 
 	friend bool operator<=(const Clock_Time&, const Clock_Time&); 
+	friend int operator-(const Clock_Time&, const Clock_Time&);
 
 	int getMinute();
 	int getHour(); 

@@ -16,9 +16,9 @@ public:
 	void displayBusLine(string code);
 	void displayBusLineStatistics(string code); 
 
-	void displayAnyPath(); 
-	void displayFastestPath(); 
-	void displayMostComfortable(); 
+	void displayAnyPath(int code1, int code2); 
+	void displayFastestPath(int code1, int code2, string s); 
+	void displayMostComfortable(int code1, int code2);
 
 	string getNameFromNumber(int code); 
 	int findLine(string code); 
@@ -26,6 +26,8 @@ public:
 
 	void insertBusStops(); 
 	void compressBusStops();
+
+	void getReachables(); 
 
 	friend class Graph;
 	

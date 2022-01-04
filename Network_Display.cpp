@@ -1,5 +1,6 @@
 #include "Network_Display.h"
 #include "Graph.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -77,6 +78,11 @@ void Network_Display::insertBusStops() {
 			}
 		}
 	}
+	for (int i = 0; i < this->lines.size(); i++) {
+		for (int k = this->lines[i]->stops_better.size() - 1; k >= 0; k--) {
+			this->lines[i]->stops_better_reversed.push_back(this->lines[i]->stops_better[k]);
+		}
+	}
 }
 
 void Network_Display::displayBusLineStatistics(string code) {
@@ -107,15 +113,45 @@ void Network_Display::compressBusStops() {
 	for (int i = 0; i < this->all_stops.size(); i++) this->all_stops[i]->compressed_number = i;  
 }
 
-void Network_Display::displayAnyPath() {
+void Network_Display::displayAnyPath(int code1, int code2) {
 	Graph* G = new Graph(this->all_stops.size());
 	G->setupGraph(this);
+	G->anyPath(code1, code2, this);
 }
 
-void Network_Display::displayFastestPath() {
-
+void Network_Display::displayFastestPath(int code1, int code2, string s) {
+	Graph* G = new Graph(this->all_stops.size());
+	G->setupGraph(this);
+	G->bestTimePath(code1, code2, s, this);
 }
 
-void Network_Display::displayMostComfortable() {
+void Network_Display::getReachables() {
+	for (int i = 0; i < this->all_stops.size(); i++) {
+		for (int j = 0; j < this->lines.size(); j++) {
+			int flag = 0; 
 
+			for (int k = 0; k < this->lines[j]->stops_better.size(); k++) {
+				if (this->all_stops[i] == this->lines[j]->stops_better[k]) {
+					flag = 1;
+				}
+			}
+			
+			if (!flag) continue;
+
+			for (int k = 0; k < this->lines[j]->stops_better.size(); k++) {
+				if (this->all_stops[i] != this->lines[j]->stops_better[k]) {
+					this->all_stops[i]->reachable.push_back(this->lines[j]->stops_better[k]); 
+				}
+			}
+		}
+		sort(this->all_stops[i]->reachable.begin(), this->all_stops[i]->reachable.end()); 
+		this->all_stops[i]->reachable.erase(unique(this->all_stops[i]->reachable.begin(), this->all_stops[i]->reachable.end()), this->all_stops[i]->reachable.end());
+	}
+}
+
+void Network_Display::displayMostComfortable(int code1, int code2) {
+	this->getReachables(); 
+	Graph* G = new Graph(this->all_stops.size());
+	G->setupGraph(this);
+	G->mostComfortablePath(code1, code2, this);
 }
