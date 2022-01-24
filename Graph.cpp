@@ -25,7 +25,8 @@ Graph::Graph(int V_) {
 
 Graph::~Graph() { 
 	for (int i = 0; i < this->V; i++) {
-		for (int j = 0; j < g[i].size(); j++) delete g[i][j].second;;
+		//for (int j = 0; j < g[i].size(); j++) delete g[i][j].second;
+		//delete g[i]; 
 	}
 	delete[] g;
 }
@@ -54,9 +55,9 @@ void Graph::anyPath(int code1, int code2, Network_Display* N) {
 	int* visit = new int[V]; 
 	for (int i = 0; i < this->V; i++) visit[i] = 0;
 
-	pair<int, Bus_Line*>* par = new pair<int, Bus_Line*>[V]; 
+	pair<int, string>* par = new pair<int, string>[V]; 
 	//par = (pair<int, Bus_Line*>*)malloc(this->V * sizeof(pair<int, Bus_Line*>)); 
-	for (int i = 0; i < this->V; i++) par[i] = make_pair(-1, new Bus_Line); 
+	for (int i = 0; i < this->V; i++) par[i] = make_pair(-1, ""); 
 
 	list<int> queue; 
 	queue.push_back(source); 
@@ -67,47 +68,52 @@ void Graph::anyPath(int code1, int code2, Network_Display* N) {
 		queue.pop_front(); 
 
 		if (now == target) {
-			printPath(par, source, target, N, code1, code2);
+			delete[] visit;
+			//delete par;
+			printModifiedPath(par, source, target, N, code1, code2);
+			delete[] par;
 			return; 
 		}
 
 		for (pair<int, Bus_Line*> it : g[now]) {
 			if (!visit[it.first]) {
 				visit[it.first] = 1;
-				par[it.first] = make_pair(now, it.second); 
+				par[it.first] = make_pair(now, it.second->line_label); 
 				queue.push_back(it.first);
 			}
 		}
 	}
+	delete[] visit;
+	delete[] par;
 	throw new PathError(code1, code2); 
 }
 
 void Graph::bestTimePath(int code1, int code2, string s, Network_Display* N) {
 	int source = N->getCompressedFromNumber(code1);
-	int target = N->getCompressedFromNumber(code2); 
+	int target = N->getCompressedFromNumber(code2);
 	Clock_Time start;
-	start.read(s); 
+	start.read(s);
 	/*start.addMinutes(3);
 	cout << start.minute;*/
-	int T = 0; 
-	int* dist = new int[V]; 
+	int T = 0;
+	int* dist = new int[V];
 
 	int* visit = new int[V];
 	for (int i = 0; i < this->V; i++) visit[i] = 0;
 
-	pair<int, Bus_Line*>* par = new pair<int, Bus_Line*>[V];
-	for (int i = 0; i < this->V; i++) par[i] = make_pair(-1, new Bus_Line);
+	pair<int, string>* par = new pair<int, string>[V];
+	for (int i = 0; i < this->V; i++) par[i] = make_pair(-1, "");
 
 	for (int i = 0; i < this->V; i++) dist[i] = 10000000;
 
-	dist[source] = 0; 
+	dist[source] = 0;
 	set<pair<int, int> > ss;
-	ss.insert(make_pair(dist[source], source)); 
+	ss.insert(make_pair(dist[source], source));
 
 	while (!ss.empty()) {
 		int d = ss.begin()->first;
 		int y = ss.begin()->second;
-		ss.erase(ss.begin()); 
+		ss.erase(ss.begin());
 
 		if (visit[y]) continue;
 		visit[y] = true;
@@ -122,7 +128,7 @@ void Graph::bestTimePath(int code1, int code2, string s, Network_Display* N) {
 			//cout << b->stops_better[0]->number << " " << N->all_stops[nxt]->number << "AAA" << endl;
 			for (int i = 0; i < b->stops_better.size(); i++) if (b->stops_better[i]->number == N->all_stops[nxt]->number) idx = i;
 			for (int i = 0; i < b->stops_better.size(); i++) if (b->stops_better[i]->number == N->all_stops[y]->number) idx2 = i;
-			if(idx2 < idx) wait_time = 3 * idx2;
+			if (idx2 < idx) wait_time = 3 * idx2;
 			if (idx2 > idx) wait_time = 3 * (b->stops_better.size() - 1 - idx2);
 			//cout << idx << " " << idx2 << endl;
 			Clock_Time tmp;
@@ -134,31 +140,42 @@ void Graph::bestTimePath(int code1, int code2, string s, Network_Display* N) {
 			// wait_time2 = odgovarajuci polazak - tmp
 			// odgpol + 3*(idx-1) < tmp <= odgpol + 3*idx
 
-			int wait_time2=0;
-			
+			int wait_time2 = 0;
+
 			//if (N->all_stops[y]->number == 154 && N->all_stops[nxt]->number == 578) cout << wait_time;
 
 			for (int i = 0; i < b->departures.size(); i++) {
 				Clock_Time tmp2 = b->departures[i];
-				tmp2.addMinutes(wait_time); 
+				tmp2.addMinutes(wait_time);
 				if (tmp <= tmp2) {
-					wait_time2 = tmp2 - tmp; 
+					wait_time2 = tmp2 - tmp;
 					break;
 				}
 			}
 
 			if (dist[nxt] > dist[y] + wait_time2 + 3) {
 				ss.erase(make_pair(dist[nxt], nxt));
-				dist[nxt] = dist[y] + wait_time2 + 3; 
-				ss.insert(make_pair(dist[nxt], nxt)); 
-				par[nxt] = make_pair(y, it.second); 
+				dist[nxt] = dist[y] + wait_time2 + 3;
+				ss.insert(make_pair(dist[nxt], nxt));
+				par[nxt] = make_pair(y, it.second->line_label);
 			}
 		}
 
 	}
-	if(dist[target] == 10000000) throw new PathError(code1, code2);
+	if (dist[target] == 10000000) {
+		delete[] dist;
+		delete[] visit; 
+		delete[] par; 
+		//for (int i = 0; i < V; i++) delete par[i].second;
+		throw new PathError(code1, code2);
+	}
+	delete [] dist;
+	delete [] visit;
+	//delete par;
+	//for (int i = 0; i < V; i++) delete par[i].second;
 	//cout << dist[target] << endl;
-	printPath(par, source, target, N, code1, code2);
+	printModifiedPath(par, source, target, N, code1, code2);
+	delete [] par;
 	return;
 }
 
@@ -202,7 +219,16 @@ void Graph::mostComfortablePath(int code1, int code2, Network_Display* N) {
 	}
 	//for (int i = 0; i < V; i++) cout << dist[i] << " ";
 
-	if (dist[target] == NMAX) throw new PathError(code1, code2);
+	if (dist[target] == NMAX) {
+		delete[] dist;
+		delete[] visit;
+		delete[] par;
+		throw new PathError(code1, code2);
+	}
+
+	delete[] dist;
+	delete[] visit;
+	//delete par;
 
 	int x = target;
 	while (par[x].first != -1) {
@@ -227,6 +253,7 @@ void Graph::mostComfortablePath(int code1, int code2, Network_Display* N) {
 	}
 	//cout << dist[target]<<endl; 
 	printModifiedPath(par, source, target, N, code1, code2);
+	delete[] par;
 	return;
 }
 
@@ -276,6 +303,7 @@ void Graph::printModifiedPath(pair<int, string>* par, int source, int target, Ne
 		last = go;
 	}
 	output.close(); 
+	//delete par;
 	//cout << "END" << endl;
 	return;
 }
@@ -330,6 +358,7 @@ void Graph::printPath(pair<int, Bus_Line*>* par, int source, int target, Network
 		}
 		last = go;
 	}
+	//delete par;
 	output.close();
 	//cout << "END" << endl;
 	return;

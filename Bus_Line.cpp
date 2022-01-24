@@ -1,4 +1,6 @@
 #include "Bus_Line.h"
+#include<set>
+#include<map>
 
 #define _CRTDBG_MAP_ALLOC
 #include<iostream>
@@ -10,6 +12,8 @@
 
 using namespace std;
 
+set<Bus_Stop*> Bus_Line::m = {}; 
+
 Bus_Line::Bus_Line() {
 	this->line_label = ""; 
 	this->departures = {};
@@ -18,7 +22,7 @@ Bus_Line::Bus_Line() {
 	this->stops_better_reversed = {}; 
 }
 
-Bus_Line::Bus_Line(Bus_Line* x) {
+/*Bus_Line::Bus_Line(Bus_Line* x) {
 	this->line_label = x->line_label;
 	this->departures = x->departures;
 	this->stops = x->stops;
@@ -29,11 +33,25 @@ Bus_Line::Bus_Line(Bus_Line* x) {
 
 	this->stops_better = x->stops_better; 
 	this->stops_better_reversed = x->stops_better_reversed;
+}*/
+
+void Bus_Line::addToSet() {
+	for (int i = 0; i < this->stops_better.size(); i++) m.insert(this->stops_better[i]);
+	for (Bus_Stop* B : m) cout << B->name << endl;
 }
 
 Bus_Line::~Bus_Line(){
-	for (int i = 0; i < this->stops_better.size(); i++) delete this->stops_better[i];
-	for (int i = 0; i < this->stops_better_reversed.size(); i++) delete this->stops_better_reversed[i];
+	//cout << "free";
+	set<Bus_Stop*> s;
+	for (int i = 0; i < this->stops_better.size(); i++) s.insert(this->stops_better[i]);
+	//cout << s.size() << endl;
+	for (Bus_Stop* B : s) {
+		if (m.find(B) != m.end()) {
+			m.erase(B);
+			delete B;
+		}
+	}
+	//for (int i = 0; i < this->stops_better_reversed.size(); i++) delete this->stops_better_reversed[i];
 }
 
 void Bus_Line::readFromString(string s) {

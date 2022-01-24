@@ -16,8 +16,10 @@ using namespace std;
 
 Network_Display::~Network_Display(){
 	//for (Bus_Line* B : this->lines) delete B;
+	cout << "free"; 
 	for (int i = 0; i < this->lines.size(); i++) delete this->lines[i]; 
-	for (int i = 0; i < this->all_stops.size(); i++) delete this->all_stops[i]; 
+	cout << "free";
+	//for (int i = 0; i < this->all_stops.size(); i++) delete this->all_stops[i]; 
 	//for (Bus_Stop* B : this->all_stops) delete B; 
 }
 
@@ -130,6 +132,7 @@ void Network_Display::insertBusStops() {
 	for (int i = 0; i < this->lines.size(); i++) {
 		for (int k = this->lines[i]->stops_better.size() - 1; k >= 0; k--) {
 			this->lines[i]->stops_better_reversed.push_back(this->lines[i]->stops_better[k]);
+			this->lines[i]->addToSet(); 
 		}
 	}
 }
@@ -175,12 +178,14 @@ void Network_Display::displayAnyPath(int code1, int code2) {
 	Graph* G = new Graph(this->all_stops.size());
 	G->setupGraph(this);
 	G->anyPath(code1, code2, this);
+	delete G;
 }
 
 void Network_Display::displayFastestPath(int code1, int code2, string s) {
 	Graph* G = new Graph(this->all_stops.size());
 	G->setupGraph(this);
 	G->bestTimePath(code1, code2, s, this);
+	delete G;
 }
 
 void Network_Display::getReachables() {
@@ -217,4 +222,5 @@ void Network_Display::displayMostComfortable(int code1, int code2) {
 	Graph* G = new Graph(this->all_stops.size());
 	G->setupGraph(this);
 	G->mostComfortablePath(code1, code2, this);
+	delete G;
 }

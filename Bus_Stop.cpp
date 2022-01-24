@@ -11,6 +11,7 @@
 using namespace std;
 
 Bus_Stop::~Bus_Stop(){
+	cout << "BusfreeBus" << endl;
 	//for (pair<Bus_Stop*, string> B : this->reachable) delete B.first;
 }
 
