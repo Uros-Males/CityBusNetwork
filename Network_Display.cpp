@@ -1,49 +1,87 @@
 #include "Network_Display.h"
 #include "Graph.h"
+#include "Exceptions.h"
 #include <algorithm>
 #include<vector>
 
+#define _CRTDBG_MAP_ALLOC
+#include<iostream>
+#include <crtdbg.h>
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+
 using namespace std;
 
+Network_Display::~Network_Display(){
+	//for (Bus_Line* B : this->lines) delete B;
+	for (int i = 0; i < this->lines.size(); i++) delete this->lines[i]; 
+	for (int i = 0; i < this->all_stops.size(); i++) delete this->all_stops[i]; 
+	//for (Bus_Stop* B : this->all_stops) delete B; 
+}
+
 void Network_Display::setupNetwork(const string &filepath, const string &filepath2) {
-	ifstream input(filepath); 
-	string s;
-	while (getline(input, s)) {
-		Bus_Line* tmp = new Bus_Line; 
-		tmp->readFromString(s); 
-		this->lines.push_back(tmp); 
-	}
-	/*for (int i = 0; i < this->lines.size(); i++) {
-		cout << this->lines[i]->line_label<<endl;
-		for (int j = 0; j < this->lines[i]->departures.size(); j++) {
-			cout << this->lines[i]->departures[j].hour << " " << this->lines[i]->departures[j].minute << endl;
+		fstream input;
+		input.open(filepath, ios::in); 
+		if (!input) throw new FileError(filepath);
+		string s;
+		while (getline(input, s)) {
+			Bus_Line* tmp = new Bus_Line;
+			tmp->readFromString(s);
+			this->lines.push_back(tmp);
 		}
-		for (int j = 0; j < this->lines[i]->stops.size(); j++) cout << this->lines[i]->stops[j] << " ";
-	}*/
-	input.close(); 
-	ifstream input2(filepath2); 
-	while (getline(input2, s)) {
-		Bus_Stop* tmp = new Bus_Stop; 
-		tmp->readFromString(s); 
-		this->all_stops.push_back(tmp); 
-		//cout << tmp->name << " " << tmp->number << endl;
-	}
-	insertBusStops();
+		/*for (int i = 0; i < this->lines.size(); i++) {
+			cout << this->lines[i]->line_label<<endl;
+			for (int j = 0; j < this->lines[i]->departures.size(); j++) {
+				cout << this->lines[i]->departures[j].hour << " " << this->lines[i]->departures[j].minute << endl;
+			}
+			for (int j = 0; j < this->lines[i]->stops.size(); j++) cout << this->lines[i]->stops[j] << " ";
+		}*/
+		input.close();
+		fstream input2; 
+		input2.open(filepath2, ios::in); 
+		if (!input2) throw new FileError(filepath2); 
+		while (getline(input2, s)) {
+			Bus_Stop* tmp = new Bus_Stop;
+			tmp->readFromString(s);
+			this->all_stops.push_back(tmp);
+			//cout << tmp->name << " " << tmp->number << endl;
+		}
+		input2.close(); 
+		insertBusStops();
 }
 
 void Network_Display::displayBusStop(int code) {
 	vector<string> all; 
-	string name; 
+	string name="";
 	for (int i = 0; i < this->all_stops.size(); i++) if (this->all_stops[i]->number == code) name = this->all_stops[i]->name; 
+	//cout << code << "AAA";
+	if (name == "") throw new BusStopError(code);
 	for (int i = 0; i < this->lines.size(); i++) {
 		if (count(this->lines[i]->stops.begin(), this->lines[i]->stops.end(), code)) all.push_back(this->lines[i]->line_label); 
 	}
-	cout << code << " " << name << " ["; 
-	for (int i = 0; i < all.size(); i++) {
-		if (i != all.size() - 1) cout << all[i] << " ";
-		else cout << all[i];
+	string filepath = "stajaliste_" + to_string(code) + ".txt"; 
+	ofstream output(filepath);
+	if (output.is_open()) {
+		output << code << " " << name << " [";
+		for (int i = 0; i < all.size(); i++) {
+			if (i != all.size() - 1) output << all[i] << " ";
+			else output << all[i];
+		}
+		output << "]" << endl;
+		output.close(); 
 	}
-	cout << "]" << endl;
+	else {
+		throw new FileError(filepath);
+	}
+}
+
+void Network_Display::checkBusStop(int code) {
+	string name = "";
+	for (int i = 0; i < this->all_stops.size(); i++) if (this->all_stops[i]->number == code) name = this->all_stops[i]->name;
+	//cout << code << " " << name << "AAA";
+	if (name == "") throw new BusStopError(code);
 }
 
 string Network_Display::getNameFromNumber(int code) {
@@ -60,17 +98,23 @@ int Network_Display::getCompressedFromNumber(int code) {
 
 int Network_Display::findLine(string code) {
 	for (int i = 0; i < this->lines.size(); i++) if (this->lines[i]->line_label == code) { return i; }
+	return -1;
 }
 
 void Network_Display::displayBusLine(string code) {
 	int id = this->findLine(code); 
-	cout << code << " " << this->lines[id]->stops_better[0]->name << "->" << this->lines[id]->stops_better[this->lines[id]->stops_better.size() - 1]->name << endl;
+	if (id == -1) throw new BusLineError(code); 
+	string filepath = "linija_" + code + ".txt";
+	ofstream output(filepath);
+	if (!output.is_open()) throw new FileError(filepath); 
+	output << code << " " << this->lines[id]->stops_better[0]->name << "->" << this->lines[id]->stops_better[this->lines[id]->stops_better.size() - 1]->name << endl;
 	//cout << code << " " << getNameFromNumber(this->lines[id]->stops[0]) << "->" << getNameFromNumber(this->lines[id]->stops[this->lines[id]->stops.size() - 1]) << endl;
 	for (int i = 0; i < this->lines[id]->stops.size(); i++) {
-		cout << this->lines[id]->stops_better[i]->number << " " << this->lines[id]->stops_better[i]->name << endl;
+		output << this->lines[id]->stops_better[i]->number << " " << this->lines[id]->stops_better[i]->name << endl;
 		//cout << this->lines[id]->stops[i] << " " << getNameFromNumber(this->lines[id]->stops[i]) << endl;
 		// vidi za /n na kraju
 	}
+	output.close(); 
 }
 
 void Network_Display::insertBusStops() {
@@ -91,8 +135,16 @@ void Network_Display::insertBusStops() {
 }
 
 void Network_Display::displayBusLineStatistics(string code) {
-	cout << code << endl;
+
+	string filepath = "statistika_" + code + ".txt";
+	ofstream output(filepath);
+	if (!output.is_open()) throw new FileError(filepath);
+
 	int id = this->findLine(code);
+	if (id == -1) throw new BusLineError(code);
+
+	output << code << endl;
+
 	vector<string> common; 
 	for (int i = 0; i < this->lines.size(); i++) {
 		if (i == id) continue;
@@ -108,9 +160,10 @@ void Network_Display::displayBusLineStatistics(string code) {
 			if (fnd == 1) break; 
 		}
 	}
-	for (int i = 0; i < common.size(); i++) cout << common[i] << " ";
-	cout << endl;
-	cout << this->lines[id]->departures.size() << endl;
+	for (int i = 0; i < common.size(); i++) output << common[i] << " ";
+	output << endl;
+	output << this->lines[id]->departures.size() << endl;
+	output.close(); 
 	// proveri /n
 }
 

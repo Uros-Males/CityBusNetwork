@@ -1,9 +1,18 @@
 #include"Graph.h"
+#include"Exceptions.h"
 #include <queue> 
 #include <stack>
 #include <list>
 #include <set>
 #define INF 10000000
+
+#define _CRTDBG_MAP_ALLOC
+#include<iostream>
+#include <crtdbg.h>
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
 
 const int NMAX = 1000000;
 
@@ -12,6 +21,13 @@ using namespace std;
 Graph::Graph(int V_) {
 	this->V = V_; 
 	this->g = new vector<pair<int, Bus_Line*> >[V_]; 
+}
+
+Graph::~Graph() { 
+	for (int i = 0; i < this->V; i++) {
+		for (int j = 0; j < g[i].size(); j++) delete g[i][j].second;;
+	}
+	delete[] g;
 }
 
 void Graph::addEdge(int u, int v, Bus_Line* B) {
@@ -28,6 +44,7 @@ void Graph::setupGraph(Network_Display* N) {
 		}
 	}
 }
+
 
 void Graph::anyPath(int code1, int code2, Network_Display* N) {
 	int source = N->getCompressedFromNumber(code1);
@@ -50,7 +67,7 @@ void Graph::anyPath(int code1, int code2, Network_Display* N) {
 		queue.pop_front(); 
 
 		if (now == target) {
-			printPath(par, source, target, N);
+			printPath(par, source, target, N, code1, code2);
 			return; 
 		}
 
@@ -62,7 +79,7 @@ void Graph::anyPath(int code1, int code2, Network_Display* N) {
 			}
 		}
 	}
-
+	throw new PathError(code1, code2); 
 }
 
 void Graph::bestTimePath(int code1, int code2, string s, Network_Display* N) {
@@ -139,8 +156,9 @@ void Graph::bestTimePath(int code1, int code2, string s, Network_Display* N) {
 		}
 
 	}
-	cout << dist[target] << endl;
-	printPath(par, source, target, N);
+	if(dist[target] == 10000000) throw new PathError(code1, code2);
+	//cout << dist[target] << endl;
+	printPath(par, source, target, N, code1, code2);
 	return;
 }
 
@@ -184,6 +202,8 @@ void Graph::mostComfortablePath(int code1, int code2, Network_Display* N) {
 	}
 	//for (int i = 0; i < V; i++) cout << dist[i] << " ";
 
+	if (dist[target] == NMAX) throw new PathError(code1, code2);
+
 	int x = target;
 	while (par[x].first != -1) {
 		Bus_Line* B = N->getLineFromString(par[x].second); 
@@ -205,12 +225,17 @@ void Graph::mostComfortablePath(int code1, int code2, Network_Display* N) {
 
 		x = par[x].first;  
 	}
-	//cout << dist[target]; 
-	printModifiedPath(par, source, target, N);
+	//cout << dist[target]<<endl; 
+	printModifiedPath(par, source, target, N, code1, code2);
 	return;
 }
 
-void Graph::printModifiedPath(pair<int, string>* par, int source, int target, Network_Display* N) {
+void Graph::printModifiedPath(pair<int, string>* par, int source, int target, Network_Display* N, int code1, int code2) {
+
+	string filepath = "putanja_" + to_string(code1) + "_" + to_string(code2) + ".txt";
+	ofstream output(filepath);
+	if (!output.is_open()) throw new FileError(filepath);
+
 	int x = target;
 	string last = "";
 	stack<pair<int, string> > S;
@@ -226,32 +251,41 @@ void Graph::printModifiedPath(pair<int, string>* par, int source, int target, Ne
 	}
 	int carry = 0;
 	//cout << "143twergwr" << endl;
-	cout << "->" << last << endl;
+	vector<int> tmp;
+	output << "->" << last << endl;
 	while (!S.empty()) {
 		string go = last;
 		while (!S.empty()) {
 			pair<int, string> pp = S.top();
 			S.pop();
+			tmp.push_back(pp.first); 
 			go = pp.second;
 			if (go != last) {
 				carry = pp.first;
 				break;
 			}
-			cout << pp.first << " ";
+			output << pp.first << " ";
 		}
-		cout << endl;
-		if (go != last) cout << last << "->" << go << endl;
+		output << endl;
+		if (go != last) output << last << "->" << go << endl;
+		if (go != last) output << tmp[tmp.size() - 2] << " ";
 		if (carry != 0) {
-			cout << carry << " ";
+			output << carry << " ";
 			carry = 0;
 		}
 		last = go;
 	}
-	cout << "END" << endl;
+	output.close(); 
+	//cout << "END" << endl;
 	return;
 }
 
-void Graph::printPath(pair<int, Bus_Line*>* par, int source, int target, Network_Display* N) {
+void Graph::printPath(pair<int, Bus_Line*>* par, int source, int target, Network_Display* N, int code1, int code2) {
+
+	string filepath = "putanja_" + to_string(code1) + "_" + to_string(code2) + ".txt";
+	ofstream output(filepath);
+	if (!output.is_open()) throw new FileError(filepath);
+
 	int x = target;
 	string last = ""; 
 	stack<pair<int, string> > S;
@@ -268,27 +302,35 @@ void Graph::printPath(pair<int, Bus_Line*>* par, int source, int target, Network
 	}
 	int carry = 0;
 	//cout << "143twergwr" << endl;
-	cout << "->" << last << endl;
+	vector<int> tmp; 
+	output << "->" << last << endl;
 	while (!S.empty()) {
 		string go = last;
+		if (carry != 0) {
+			output << carry << " ";
+			carry = 0;
+		}
 		while (!S.empty()) {
 			pair<int, string> pp = S.top();
 			S.pop(); 
+			tmp.push_back(pp.first);
 			go = pp.second; 
 			if (go != last) {
 				carry = pp.first;
 				break;
 			}
-			cout << pp.first << " "; 
+			output << pp.first << " "; 
 		}
-		cout << endl; 
-		if(go!=last) cout << last << "->" << go << endl;
+		output << endl; 
+		if(go!=last) output << last << "->" << go << endl;
+		if (go != last) output << tmp[tmp.size() - 2] << " ";
 		if (carry != 0) {
-			cout << carry << " ";
+			output << carry << " ";
 			carry = 0;
 		}
 		last = go;
 	}
-	cout << "END" << endl;
+	output.close();
+	//cout << "END" << endl;
 	return;
 }

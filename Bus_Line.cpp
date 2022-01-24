@@ -1,5 +1,13 @@
 #include "Bus_Line.h"
 
+#define _CRTDBG_MAP_ALLOC
+#include<iostream>
+#include <crtdbg.h>
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+
 using namespace std;
 
 Bus_Line::Bus_Line() {
@@ -14,8 +22,18 @@ Bus_Line::Bus_Line(Bus_Line* x) {
 	this->line_label = x->line_label;
 	this->departures = x->departures;
 	this->stops = x->stops;
+
+	for (int i = 0; i < x->stops_better.size(); i++) {
+		Bus_Stop* B = new Bus_Stop; 
+	}
+
 	this->stops_better = x->stops_better; 
 	this->stops_better_reversed = x->stops_better_reversed;
+}
+
+Bus_Line::~Bus_Line(){
+	for (int i = 0; i < this->stops_better.size(); i++) delete this->stops_better[i];
+	for (int i = 0; i < this->stops_better_reversed.size(); i++) delete this->stops_better_reversed[i];
 }
 
 void Bus_Line::readFromString(string s) {

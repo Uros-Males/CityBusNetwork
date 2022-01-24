@@ -11,10 +11,15 @@ using namespace std;
 
 class Network_Display {
 public:
+
+	~Network_Display(); 
+
 	void setupNetwork(const string &filepath, const string &filepath2); 
 	void displayBusStop(int code);
 	void displayBusLine(string code);
 	void displayBusLineStatistics(string code); 
+
+	void checkBusStop(int code);
 
 	void displayAnyPath(int code1, int code2); 
 	void displayFastestPath(int code1, int code2, string s); 

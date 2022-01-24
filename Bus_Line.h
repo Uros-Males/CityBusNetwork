@@ -13,6 +13,7 @@ class Bus_Line {
 public:
 	Bus_Line();
 	Bus_Line(Bus_Line* x);
+	~Bus_Line(); 
 	void readFromString(string s);
 	friend class Network_Display;
 	friend class Graph;

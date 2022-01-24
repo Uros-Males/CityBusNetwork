@@ -10,6 +10,7 @@ using namespace std;
 
 class Bus_Stop {
 public:
+	~Bus_Stop(); 
 	Bus_Stop();
 	Bus_Stop(string name_, int number_); 
 
