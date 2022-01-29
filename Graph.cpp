@@ -6,13 +6,8 @@
 #include <set>
 #define INF 10000000
 
-#define _CRTDBG_MAP_ALLOC
 #include<iostream>
-#include <crtdbg.h>
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
+
 
 const int NMAX = 1000000;
 
@@ -169,11 +164,11 @@ void Graph::bestTimePath(int code1, int code2, string s, Network_Display* N) {
 		//for (int i = 0; i < V; i++) delete par[i].second;
 		throw new PathError(code1, code2);
 	}
+	//cout << dist[target] << endl;
 	delete [] dist;
 	delete [] visit;
 	//delete par;
 	//for (int i = 0; i < V; i++) delete par[i].second;
-	//cout << dist[target] << endl;
 	printModifiedPath(par, source, target, N, code1, code2);
 	delete [] par;
 	return;

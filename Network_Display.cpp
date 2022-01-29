@@ -4,21 +4,17 @@
 #include <algorithm>
 #include<vector>
 
-#define _CRTDBG_MAP_ALLOC
+
 #include<iostream>
-#include <crtdbg.h>
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
+
 
 using namespace std;
 
 Network_Display::~Network_Display(){
 	//for (Bus_Line* B : this->lines) delete B;
-	cout << "free"; 
+	//cout << "free"; 
 	for (int i = 0; i < this->lines.size(); i++) delete this->lines[i]; 
-	cout << "free";
+	//cout << "free";
 	//for (int i = 0; i < this->all_stops.size(); i++) delete this->all_stops[i]; 
 	//for (Bus_Stop* B : this->all_stops) delete B; 
 }

@@ -2,13 +2,7 @@
 #include<set>
 #include<map>
 
-#define _CRTDBG_MAP_ALLOC
 #include<iostream>
-#include <crtdbg.h>
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
 
 using namespace std;
 
@@ -37,7 +31,7 @@ Bus_Line::Bus_Line() {
 
 void Bus_Line::addToSet() {
 	for (int i = 0; i < this->stops_better.size(); i++) m.insert(this->stops_better[i]);
-	for (Bus_Stop* B : m) cout << B->name << endl;
+	//for (Bus_Stop* B : m) cout << B->name << endl;
 }
 
 Bus_Line::~Bus_Line(){
